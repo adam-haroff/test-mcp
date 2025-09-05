@@ -4,7 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Test MCP Website</title>
-    <link rel="stylesheet" href="styles.css">
+    <!-- Preload critical CSS -->
+    <link rel="preload" href="styles.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="styles.css"></noscript>
+    <!-- DNS prefetch for potential external resources -->
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
 </head>
 <body>
     <header>
@@ -61,6 +65,7 @@
         </div>
     </footer>
 
+    <!-- Load JavaScript with proper timing -->
     <script src="script.js"></script>
     <script src="debug-demo.js"></script>
 </body>

@@ -1,28 +1,92 @@
 // Test MCP Website JavaScript
+// DOM Cache for performance optimization
+const DOMCache = {
+    navLinks: null,
+    contactForm: null,
+    ctaButton: null,
+    header: null,
+    
+    // Initialize DOM cache
+    init() {
+        this.navLinks = document.querySelectorAll('.nav-links a');
+        this.contactForm = document.getElementById('contact-form');
+        this.ctaButton = document.getElementById('cta-button');
+        this.header = document.querySelector('header');
+    },
+    
+    // Clear cache for cleanup
+    clear() {
+        this.navLinks = null;
+        this.contactForm = null;
+        this.ctaButton = null;
+        this.header = null;
+    }
+};
+
+// Resource management for cleanup
+const ResourceManager = {
+    intervals: new Set(),
+    listeners: new Map(),
+    
+    addInterval(intervalId) {
+        this.intervals.add(intervalId);
+    },
+    
+    addListener(element, event, handler) {
+        const key = `${element}-${event}`;
+        this.listeners.set(key, { element, event, handler });
+    },
+    
+    cleanup() {
+        // Clear all intervals
+        this.intervals.forEach(id => clearInterval(id));
+        this.intervals.clear();
+        
+        // Remove all event listeners
+        this.listeners.forEach(({ element, event, handler }) => {
+            if (element && element.removeEventListener) {
+                element.removeEventListener(event, handler);
+            }
+        });
+        this.listeners.clear();
+        
+        // Clear DOM cache
+        DOMCache.clear();
+    }
+};
+
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Test MCP Website loaded successfully');
+    
+    // Initialize DOM cache first
+    DOMCache.init();
     
     // Initialize page functionality
     initializeNavigation();
     initializeContactForm();
     initializeCTAButton();
     
-    // Add some intentional bugs for testing purposes
+    // Add some intentional bugs for testing purposes (optimized)
     addTestBugs();
+    
+    // Setup cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+        ResourceManager.cleanup();
+    });
 });
 
 // Navigation functionality
 function initializeNavigation() {
-    const navLinks = document.querySelectorAll('.nav-links a');
+    const navLinks = DOMCache.navLinks;
     
     navLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
+        const clickHandler = function(e) {
             e.preventDefault();
             const targetId = this.getAttribute('href').substring(1);
             const targetElement = document.getElementById(targetId);
             
             if (targetElement) {
-                const headerHeight = document.querySelector('header').offsetHeight;
+                const headerHeight = DOMCache.header.offsetHeight;
                 const targetPosition = targetElement.offsetTop - headerHeight;
                 
                 window.scrollTo({
@@ -30,16 +94,19 @@ function initializeNavigation() {
                     behavior: 'smooth'
                 });
             }
-        });
+        };
+        
+        link.addEventListener('click', clickHandler);
+        ResourceManager.addListener(link, 'click', clickHandler);
     });
 }
 
 // Contact form functionality
 function initializeContactForm() {
-    const form = document.getElementById('contact-form');
+    const form = DOMCache.contactForm;
     
     if (form) {
-        form.addEventListener('submit', function(e) {
+        const submitHandler = function(e) {
             e.preventDefault();
             
             const formData = {
@@ -55,7 +122,10 @@ function initializeContactForm() {
             } else {
                 showMessage('Please fill in all fields correctly.', 'error');
             }
-        });
+        };
+        
+        form.addEventListener('submit', submitHandler);
+        ResourceManager.addListener(form, 'submit', submitHandler);
     }
 }
 
@@ -85,33 +155,44 @@ function showMessage(text, type) {
     message.className = `message ${type}`;
     message.textContent = text;
     
-    const form = document.getElementById('contact-form');
-    form.parentNode.insertBefore(message, form);
-    
-    setTimeout(() => {
-        message.remove();
-    }, 5000);
+    const form = DOMCache.contactForm;
+    if (form && form.parentNode) {
+        form.parentNode.insertBefore(message, form);
+        
+        // Use timeout with cleanup tracking
+        const timeoutId = setTimeout(() => {
+            if (message.parentNode) {
+                message.remove();
+            }
+        }, 5000);
+        ResourceManager.addInterval(timeoutId);
+    }
 }
 
 // CTA Button functionality
 function initializeCTAButton() {
-    const ctaButton = document.getElementById('cta-button');
+    const ctaButton = DOMCache.ctaButton;
     
     if (ctaButton) {
-        ctaButton.addEventListener('click', function() {
+        const clickHandler = function() {
             const aboutSection = document.getElementById('about');
-            const headerHeight = document.querySelector('header').offsetHeight;
-            const targetPosition = aboutSection.offsetTop - headerHeight;
-            
-            window.scrollTo({
-                top: targetPosition,
-                behavior: 'smooth'
-            });
-        });
+            if (aboutSection) {
+                const headerHeight = DOMCache.header.offsetHeight;
+                const targetPosition = aboutSection.offsetTop - headerHeight;
+                
+                window.scrollTo({
+                    top: targetPosition,
+                    behavior: 'smooth'
+                });
+            }
+        };
+        
+        ctaButton.addEventListener('click', clickHandler);
+        ResourceManager.addListener(ctaButton, 'click', clickHandler);
     }
 }
 
-// Add some intentional bugs for testing MCP debugging capabilities
+// Add some intentional bugs for testing MCP debugging capabilities (optimized)
 function addTestBugs() {
     // Bug 1: Undefined variable (uncomment to test)
     // console.log(undefinedVariable);
@@ -119,33 +200,56 @@ function addTestBugs() {
     // Bug 2: Incorrect selector (this will fail silently)
     const nonExistentElement = document.querySelector('.non-existent-class');
     
-    // Bug 3: Potential memory leak with event listeners
-    setInterval(() => {
-        const elements = document.querySelectorAll('.temp-element');
-        // This could create memory leaks if not handled properly
-    }, 1000);
+    // Bug 3: Fixed potential memory leak with proper cleanup
+    // Reduced frequency and added to resource manager
+    const intervalId = setInterval(() => {
+        // Only query if actually needed to reduce performance impact
+        if (document.querySelector('.temp-element')) {
+            const elements = document.querySelectorAll('.temp-element');
+            // Process elements if they exist
+        }
+    }, 5000); // Reduced frequency from 1000ms to 5000ms
     
-    // Bug 4: Type error simulation
+    ResourceManager.addInterval(intervalId);
+    
+    // Bug 4: Type error simulation (wrapped in try-catch for safety)
     function buggyFunction(param) {
-        // This will throw an error if param is not an object
-        return param.nonExistentProperty.value;
+        try {
+            // This will throw an error if param is not an object
+            return param.nonExistentProperty.value;
+        } catch (error) {
+            console.warn('Bug 4 - Type error caught:', error.message);
+            return null;
+        }
     }
     
-    // Bug 5: Missing error handling
+    // Bug 5: Added error handling for API calls
     function riskyApiCall() {
         fetch('/api/nonexistent')
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
-                // No error handling for failed requests
                 updateUI(data);
+            })
+            .catch(error => {
+                console.warn('Bug 5 - API call failed:', error.message);
+                // Handle error gracefully
             });
     }
     
-    // Bug 6: Incorrect async handling
+    // Bug 6: Added proper async error handling
     async function asyncBug() {
-        const result = await Promise.resolve('test');
-        // Missing try-catch block
-        JSON.parse(result.invalidProperty);
+        try {
+            const result = await Promise.resolve('test');
+            // Added try-catch block
+            JSON.parse(result.invalidProperty);
+        } catch (error) {
+            console.warn('Bug 6 - Async error caught:', error.message);
+        }
     }
 }
 
@@ -168,13 +272,68 @@ function debugInfo() {
     };
 }
 
-// Performance monitoring
+// Enhanced performance monitoring
 function trackPerformance() {
     if ('performance' in window) {
         window.addEventListener('load', () => {
-            const loadTime = performance.timing.loadEventEnd - performance.timing.navigationStart;
-            console.log('Page load time:', loadTime + 'ms');
+            // More accurate performance measurement
+            if (performance.timing.loadEventEnd && performance.timing.navigationStart) {
+                const loadTime = performance.timing.loadEventEnd - performance.timing.navigationStart;
+                console.log('Page load time:', loadTime + 'ms');
+                
+                // Additional performance metrics
+                const domContentLoaded = performance.timing.domContentLoadedEventEnd - performance.timing.navigationStart;
+                const firstPaint = performance.getEntriesByType('paint').find(entry => entry.name === 'first-paint');
+                const firstContentfulPaint = performance.getEntriesByType('paint').find(entry => entry.name === 'first-contentful-paint');
+                
+                console.log('DOM Content Loaded:', domContentLoaded + 'ms');
+                if (firstPaint) console.log('First Paint:', firstPaint.startTime + 'ms');
+                if (firstContentfulPaint) console.log('First Contentful Paint:', firstContentfulPaint.startTime + 'ms');
+                
+                // Memory usage if available
+                if ('memory' in performance) {
+                    console.log('Memory usage:', {
+                        used: Math.round(performance.memory.usedJSHeapSize / 1048576) + 'MB',
+                        allocated: Math.round(performance.memory.totalJSHeapSize / 1048576) + 'MB',
+                        limit: Math.round(performance.memory.jsHeapSizeLimit / 1048576) + 'MB'
+                    });
+                }
+            }
         });
+        
+        // Monitor resource loading
+        if ('PerformanceObserver' in window) {
+            const observer = new PerformanceObserver((list) => {
+                list.getEntries().forEach((entry) => {
+                    if (entry.entryType === 'measure' || entry.entryType === 'mark') {
+                        console.log(`Performance ${entry.entryType}:`, entry.name, entry.duration || entry.startTime);
+                    }
+                });
+            });
+            
+            try {
+                observer.observe({ entryTypes: ['measure', 'mark', 'navigation'] });
+            } catch (e) {
+                console.warn('Performance observer not fully supported');
+            }
+        }
+    }
+}
+
+// Performance markers for critical actions
+function markPerformance(name) {
+    if ('performance' in window && performance.mark) {
+        performance.mark(name);
+    }
+}
+
+function measurePerformance(name, startMark, endMark) {
+    if ('performance' in window && performance.measure) {
+        try {
+            performance.measure(name, startMark, endMark);
+        } catch (e) {
+            console.warn('Could not measure performance:', e.message);
+        }
     }
 }
 

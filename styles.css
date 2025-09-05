@@ -10,6 +10,9 @@ body {
     line-height: 1.6;
     color: #333;
     background-color: #f4f4f4;
+    /* Performance optimization: enable font smoothing */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 .container {
@@ -28,6 +31,9 @@ header {
     top: 0;
     z-index: 1000;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    /* Performance: hint browser about compositing */
+    will-change: transform;
+    backface-visibility: hidden;
 }
 
 nav {
@@ -55,6 +61,8 @@ nav {
     text-decoration: none;
     font-weight: 500;
     transition: color 0.3s ease;
+    /* Performance: use transform instead of changing other properties */
+    will-change: color;
 }
 
 .nav-links a:hover {
@@ -82,12 +90,15 @@ main {
     font-size: 3rem;
     margin-bottom: 1rem;
     animation: fadeInUp 1s ease;
+    /* Performance optimization for animated elements */
+    will-change: transform, opacity;
 }
 
 .hero-content p {
     font-size: 1.2rem;
     margin-bottom: 2rem;
     animation: fadeInUp 1s ease 0.2s both;
+    will-change: transform, opacity;
 }
 
 .cta-button {
@@ -101,6 +112,8 @@ main {
     cursor: pointer;
     transition: all 0.3s ease;
     animation: fadeInUp 1s ease 0.4s both;
+    /* Performance: use transform for hover effects */
+    will-change: transform, box-shadow;
 }
 
 .cta-button:hover {
@@ -190,6 +203,8 @@ main {
     font-weight: bold;
     cursor: pointer;
     transition: all 0.3s ease;
+    /* Performance optimization */
+    will-change: transform, box-shadow;
 }
 
 #contact-form button:hover {
@@ -217,6 +232,19 @@ footer {
     }
 }
 
+/* Performance: Reset will-change after animations complete */
+.hero-content h2,
+.hero-content p,
+.cta-button {
+    animation-fill-mode: both;
+}
+
+.hero-content h2:hover,
+.hero-content p:hover,
+.cta-button:hover {
+    will-change: auto;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
     .nav-links {
@@ -238,21 +266,23 @@ footer {
     }
 }
 
-/* Error styles for debugging */
-.error {
-    color: #e74c3c;
-    background: #fadbd8;
+/* Message styles for feedback - optimized for reuse */
+.message {
     padding: 10px;
     border-radius: 5px;
     margin: 10px 0;
-    border-left: 4px solid #e74c3c;
+    border-left: 4px solid;
+    font-weight: 500;
 }
 
-.success {
+.message.error {
+    color: #e74c3c;
+    background: #fadbd8;
+    border-left-color: #e74c3c;
+}
+
+.message.success {
     color: #27ae60;
     background: #d5f4e6;
-    padding: 10px;
-    border-radius: 5px;
-    margin: 10px 0;
-    border-left: 4px solid #27ae60;
+    border-left-color: #27ae60;
 }
