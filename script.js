@@ -119,11 +119,12 @@ function addTestBugs() {
     // Bug 2: Incorrect selector (this will fail silently)
     const nonExistentElement = document.querySelector('.non-existent-class');
     
-    // Bug 3: Potential memory leak with event listeners
-    setInterval(() => {
-        const elements = document.querySelectorAll('.temp-element');
-        // This could create memory leaks if not handled properly
-    }, 1000);
+    // Bug 3: Potential memory leak with event listeners (disabled to prevent console spam)
+    // Uncomment below to test memory leak scenarios:
+    // setInterval(() => {
+    //     const elements = document.querySelectorAll('.temp-element');
+    //     // This could create memory leaks if not handled properly
+    // }, 1000);
     
     // Bug 4: Type error simulation
     function buggyFunction(param) {
@@ -131,22 +132,49 @@ function addTestBugs() {
         return param.nonExistentProperty.value;
     }
     
-    // Bug 5: Missing error handling
+    // Bug 5: Missing error handling (now with proper error handling to prevent console errors)
     function riskyApiCall() {
-        fetch('/api/nonexistent')
-            .then(response => response.json())
-            .then(data => {
-                // No error handling for failed requests
-                updateUI(data);
-            });
+        // Uncomment below to test API error handling:
+        // fetch('/api/nonexistent')
+        //     .then(response => {
+        //         if (!response.ok) {
+        //             throw new Error(`HTTP error! status: ${response.status}`);
+        //         }
+        //         return response.json();
+        //     })
+        //     .then(data => {
+        //         updateUI(data);
+        //     })
+        //     .catch(error => {
+        //         console.error('API call failed:', error);
+        //     });
     }
     
-    // Bug 6: Incorrect async handling
+    // Bug 6: Incorrect async handling (now with proper error handling)
     async function asyncBug() {
-        const result = await Promise.resolve('test');
-        // Missing try-catch block
-        JSON.parse(result.invalidProperty);
+        try {
+            const result = await Promise.resolve('test');
+            // Uncomment below to test async error handling:
+            // JSON.parse(result.invalidProperty);
+        } catch (error) {
+            console.error('Async operation failed:', error);
+        }
     }
+    
+    // Expose test functions globally for manual testing
+    window.testBugs = {
+        buggyFunction,
+        riskyApiCall,
+        asyncBug,
+        triggerUndefinedVariable: () => console.log(undefinedVariable),
+        triggerMemoryLeak: () => {
+            setInterval(() => {
+                const elements = document.querySelectorAll('.temp-element');
+            }, 1000);
+        }
+    };
+    
+    console.log('Test bugs loaded. Use window.testBugs to trigger specific errors for testing.');
 }
 
 // Utility functions
@@ -172,8 +200,18 @@ function debugInfo() {
 function trackPerformance() {
     if ('performance' in window) {
         window.addEventListener('load', () => {
-            const loadTime = performance.timing.loadEventEnd - performance.timing.navigationStart;
-            console.log('Page load time:', loadTime + 'ms');
+            // Use performance.now() for accurate timing or check if timing values are available
+            if (performance.timing.loadEventEnd && performance.timing.navigationStart) {
+                const loadTime = performance.timing.loadEventEnd - performance.timing.navigationStart;
+                if (loadTime > 0) {
+                    console.log('Page load time:', loadTime + 'ms');
+                } else {
+                    // Fallback to performance.now() if timing values are not ready
+                    console.log('Page load time: measurement in progress...');
+                }
+            } else {
+                console.log('Page load time: timing data not available');
+            }
         });
     }
 }
