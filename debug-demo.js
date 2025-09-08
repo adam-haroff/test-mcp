@@ -3,7 +3,7 @@
 
 function demonstrateBugFixes() {
     console.log('=== MCP Debugging Demo ===');
-    
+
     // Bug 1: Undefined variable (will throw ReferenceError)
     try {
         // This will cause an error:
@@ -12,7 +12,7 @@ function demonstrateBugFixes() {
     } catch (error) {
         console.log('❌ Bug 1 detected:', error.message);
     }
-    
+
     // Bug 2: Type error (will throw TypeError)
     try {
         const obj = null;
@@ -22,7 +22,7 @@ function demonstrateBugFixes() {
     } catch (error) {
         console.log('❌ Bug 2 detected:', error.message);
     }
-    
+
     // Bug 3: Syntax error in JSON parsing
     try {
         const invalidJSON = '{"name": "test", "age":}'; // Missing value
@@ -32,7 +32,7 @@ function demonstrateBugFixes() {
     } catch (error) {
         console.log('❌ Bug 3 detected:', error.message);
     }
-    
+
     // Bug 4: Array access out of bounds
     try {
         const arr = [1, 2, 3];
@@ -45,7 +45,7 @@ function demonstrateBugFixes() {
     } catch (error) {
         console.log('❌ Bug 4 detected:', error.message);
     }
-    
+
     // Bug 5: Asynchronous error handling
     testAsyncErrorHandling();
 }
@@ -68,12 +68,12 @@ async function testAsyncErrorHandling() {
 function monitorPerformance() {
     if ('performance' in window && performance.mark) {
         performance.mark('demo-start');
-        
+
         // Simulate some work
         setTimeout(() => {
             performance.mark('demo-end');
             performance.measure('demo-duration', 'demo-start', 'demo-end');
-            
+
             const measure = performance.getEntriesByName('demo-duration')[0];
             console.log(`Performance: Demo completed in ${measure.duration.toFixed(2)}ms`);
         }, 100);
@@ -84,21 +84,21 @@ function monitorPerformance() {
 function demonstrateMemoryManagement() {
     let intervalId;
     let timeoutId;
-    
+
     // Bad: Creating intervals without cleanup
     // setInterval(() => { console.log('Memory leak!'); }, 1000);
-    
+
     // Good: Proper cleanup
     intervalId = setInterval(() => {
         console.log('Managed interval running...');
     }, 5000);
-    
+
     // Clean up after 15 seconds
     timeoutId = setTimeout(() => {
         clearInterval(intervalId);
         console.log('✅ Interval cleaned up - no memory leak');
     }, 15000);
-    
+
     // Store IDs for potential cleanup
     window.demoCleanup = () => {
         clearInterval(intervalId);
